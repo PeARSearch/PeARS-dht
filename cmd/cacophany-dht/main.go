@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/PeARSearch/cacophony-dht/pkg/peer"
 	// nolint:typecheck
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -16,6 +17,8 @@ import (
 
 var logLevel string
 var cfgFile string
+
+var peerConfig = peer.NewPeerConfig()
 
 var cacDht = &cobra.Command{ // nolint:gochecknoglobals
 	PersistentPreRunE: configLogger,
@@ -79,6 +82,11 @@ func init() {
 
 	cacDht.PersistentFlags().StringVar(&cfgFile, "config", "", "config file "+
 		"(default is $HOME/.cacophony-dht.yaml)")
+
+	cacDht.Flags().IntVarP(&peerConfig.ListenPort, "listen", "l", 0, "port to listen to")
+	cacDht.Flags().StringVarP(&peerConfig.Target, "target", "t", "", "target peer to dial")
+	cacDht.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
+	cacDht.Flags().BoolVarP(&peerConfig.Global, "global", "g", true, "use gloabl peer list")
 }
 
 func readConfigFile() *viper.Viper {
