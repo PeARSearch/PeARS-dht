@@ -26,7 +26,23 @@ var cacDht = &cobra.Command{ // nolint:gochecknoglobals
 	Short:             "Let's make some noise",
 	SilenceUsage:      true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Infof("I don't do much yet")
+		log.Debug("Creating the basic host for the peer")
+
+		err := peerConfig.MakeBasicHost()
+		if err != nil {
+			return err
+		}
+
+		if len(peerConfig.Target) == 0 {
+			peer.Listener(cmd.Context(), peerConfig.GetHost(), peerConfig.ListenPort)
+
+			<-cmd.Context().Done()
+		} else {
+			err = peer.Sender(cmd.Context(), peerConfig.GetHost(), peerConfig.Target)
+			if err != nil {
+				return err
+			}
+		}
 
 		return nil
 	},
@@ -87,6 +103,8 @@ func init() {
 	cacDht.Flags().StringVarP(&peerConfig.Target, "target", "t", "", "target peer to dial")
 	cacDht.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
 	cacDht.Flags().BoolVarP(&peerConfig.Global, "global", "g", true, "use gloabl peer list")
+
+	cacDht.MarkFlagRequired("listen") // we require the port to bind the service to
 }
 
 func readConfigFile() *viper.Viper {
