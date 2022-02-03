@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"io"
 	mrand "math/rand"
+	"sync"
 
 	"fmt"
 
@@ -13,6 +14,8 @@ import (
 	libp2p "github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
+	libPeer "github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/peerstore"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	rhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	multiaddr "github.com/multiformats/go-multiaddr"
@@ -26,6 +29,7 @@ type PeerConfig struct {
 	Seed       int
 	Target     string
 	host       host.Host
+	Peers      []string
 }
 
 func NewPeerConfig() PeerConfig {
@@ -40,8 +44,65 @@ func (p *PeerConfig) GetHost() host.Host {
 	return p.host
 }
 
-func (p *PeerConfig) Bootstrap() {
-	// TODO this will Bootstrap the local peer
+func (p *PeerConfig) getPeerInfo() []libPeer.AddrInfo {
+	pinfos := make([]libPeer.AddrInfo, len(p.Peers))
+	for i, addr := range p.Peers {
+		maddr := multiaddr.StringCast(addr)
+		p, err := libPeer.AddrInfoFromP2pAddr(maddr)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		pinfos[i] = *p
+	}
+	return pinfos
+}
+
+func (p *PeerConfig) Bootstrap(ctx context.Context) error {
+	peers := p.getPeerInfo()
+	log.Info(peers)
+	if len(peers) < 1 {
+		return fmt.Errorf("Not enough peers to bootstrap with")
+	}
+
+	log.Infof("We have peers %s", peers)
+
+	errs := make(chan error, len(peers))
+	var wg sync.WaitGroup
+	for _, pr := range peers {
+		wg.Add(1)
+		go func(pr libPeer.AddrInfo) {
+			defer wg.Done()
+			defer log.Println(ctx, "bootstrapDial", p.host, pr.ID)
+			log.Printf("%s bootstrapping to %s", p.host, pr.ID)
+
+			log.Info("test")
+			log.Info(p.host.Peerstore())
+			p.host.Peerstore().AddAddrs(pr.ID, pr.Addrs, peerstore.PermanentAddrTTL)
+			if err := p.host.Connect(ctx, pr); err != nil {
+				log.Println(ctx, "bootstrapDialFailed", pr.ID)
+				log.Printf("failed to bootstrap with %v: %s", pr.ID, err)
+				errs <- err
+				return
+			}
+			log.Println(ctx, "bootstrapDialSuccess", pr.ID)
+			log.Printf("bootstrapped with %v", pr.ID)
+		}(pr)
+	}
+
+	wg.Wait()
+	close(errs)
+	count := 0
+	var err error
+	for err = range errs {
+		if err != nil {
+			count++
+		}
+	}
+	if count == len(peers) {
+		return fmt.Errorf("failed to bootstrap. %s", err)
+	}
+
+	return nil
 }
 
 func (p *PeerConfig) MakeBasicHost() error {
@@ -88,7 +149,7 @@ func (p *PeerConfig) MakeRoutedHost(ctx context.Context) error {
 	}
 
 	options := []libp2p.Option{
-		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", p.ListenPort)),
+		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", p.ListenPort)),
 		libp2p.Identity(priv),
 		libp2p.DefaultTransports,
 		libp2p.DefaultMuxers,
@@ -105,29 +166,31 @@ func (p *PeerConfig) MakeRoutedHost(ctx context.Context) error {
 
 	dht := dht.NewDHT(ctx, basicHost, dstore)
 
-	routedHost := rhost.Wrap(basicHost, dht)
+	p.host = rhost.Wrap(basicHost, dht)
 
-	// TODO bootstrap code
-	//
-	err = dht.Bootstrap(ctx)
-	if err != nil {
-		return err
+	if len(p.Peers) > 0 {
+		err = p.Bootstrap(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
+	err = dht.Bootstrap(ctx)
+
 	// Build host multiaddress
-	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ipfs/%s", routedHost.ID().Pretty()))
+	hostAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ipfs/%s", p.host.ID().Pretty()))
 
 	// Now we can build a full multiaddress to reach this host
 	// by encapsulating both addresses:
 	// addr := routedHost.Addrs()[0]
-	addrs := routedHost.Addrs()
+	addrs := p.host.Addrs()
 
-	log.Infof("This peer %d can be reached at:", routedHost.ID().Pretty())
+	log.Infof("This peer %d can be reached at:", p.host.ID().Pretty())
 	for _, addr := range addrs {
 		log.Info(addr.Encapsulate(hostAddr))
 	}
 
-	p.setHost(routedHost)
+	p.setHost(p.host)
 
 	return nil
 }

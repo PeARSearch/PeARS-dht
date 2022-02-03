@@ -28,10 +28,14 @@ var cacDht = &cobra.Command{ // nolint:gochecknoglobals
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Debug("Creating the basic host for the peer")
 
-		err := peerConfig.MakeBasicHost()
+		err := peerConfig.MakeRoutedHost(cmd.Context())
 		if err != nil {
 			return err
 		}
+
+		log.Info(peerConfig.GetHost().Peerstore().AddrBook)
+
+		log.Info("created basic host")
 
 		if len(peerConfig.Target) == 0 {
 			peer.Listener(cmd.Context(), peerConfig.GetHost(), peerConfig.ListenPort)
@@ -102,7 +106,8 @@ func init() {
 	cacDht.Flags().IntVarP(&peerConfig.ListenPort, "listen", "l", 0, "port to listen to")
 	cacDht.Flags().StringVarP(&peerConfig.Target, "target", "t", "", "target peer to dial")
 	cacDht.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
-	cacDht.Flags().BoolVarP(&peerConfig.Global, "global", "g", true, "use gloabl peer list")
+	// cacDht.Flags().BoolVarP(&peerConfig.Global, "global", "g", true, "use gloabl peer list")
+	cacDht.Flags().StringSliceVarP(&peerConfig.Peers, "peers", "p", []string{}, "list of peers to bootstrap with")
 
 	cacDht.MarkFlagRequired("listen") // we require the port to bind the service to
 }
