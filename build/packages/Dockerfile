@@ -10,4 +10,6 @@ COPY pkg pkg
 
 RUN go build -o pears-dht ./cmd/cacophany-dht/main.go
 
-ENTRYPOINT ["/pears/pears-dht -p 8080"]
+RUN ls -a
+
+ENTRYPOINT ["./pears-dht", "-p", "8080"]
