@@ -27,12 +27,17 @@ endif
 	kind create cluster --name ${KIND_CLUSTER_NAME} --image=kindest/node:v1.24.0
 	until kubectl get nodes -o jsonpath="${WAIT_FOR_KIND_READY}" 2>&1 | grep -q "Ready=True"; do sleep 5; echo "--------> waiting for cluster node to be available"; done
 
+## load-docker-image: Load docker image to the kind cluster
+load-docker-image:
+	@kind load docker-image --name pears ${PROJECTNAME}:local-build
+
 ## run-server-mode: Create a pears node as the server
 run-server-mode:
+	@kubectl run pears --image=${PROJECTNAME}:local-build  --port=8080 --port=8888 --expose
 
 ## build: Build the container image
 build: check-docker
 	@docker build --no-cache --pull -f build/packages/Dockerfile -t ${PROJECTNAME}:local-build .
 
 ## dev-setup: Create a complete dev-setup with k8s cluster running 4 pears dht
-dev-setup: build create-cluster run-server-mode
+dev-setup: build create-cluster load-docker-image run-server-mode
