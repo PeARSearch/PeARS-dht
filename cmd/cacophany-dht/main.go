@@ -16,6 +16,7 @@ import (
 
 	"github.com/PeARSearch/cacophony-dht/pkg/client"
 	"github.com/PeARSearch/cacophony-dht/pkg/peer"
+
 	// nolint:typecheck
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -70,17 +71,13 @@ var pearCmd = &cobra.Command{ // nolint:gochecknoglobals
 			return err
 		}
 
-		result, err := dht.GetValue(ctx, "test")
-		if err != nil {
-			log.Info(err)
+		peerConfig.SetDht(dht)
 
-		}
-
-		log.Info(result)
-		r := client.Setup()
+		r := client.Setup(peerConfig)
 		addr := fmt.Sprintf("%s:%d", "127.0.0.1", 8888)
 		log.Debugf("ready to serve at %s", addr)
 
+		// we start the REST API to get the value from the orchard
 		go r.Run(addr)
 
 		// TODO add the dht value and all to a config
@@ -159,7 +156,7 @@ func init() {
 	pearCmd.PersistentFlags().StringVarP(&cfgFile, "config", "f", "", "config file "+
 		"(default is $HOME/.cacophony-dht.yaml)")
 
-	pearCmd.Flags().IntVarP(&peerConfig.ListenPort, "port", "p", 0, "port to listen to")
+	pearCmd.Flags().IntVarP(&peerConfig.ListenPort, "port", "p", 8080, "port to listen to")
 	pearCmd.Flags().StringVarP(&peerConfig.Contacts, "contacts", "t", "", "target peers to dial(give a comma separated list)")
 	pearCmd.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
 

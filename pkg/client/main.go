@@ -5,11 +5,12 @@ import (
 	"runtime/debug"
 	"strings"
 
+	"github.com/PeARSearch/cacophony-dht/pkg/peer"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
-func Setup() *gin.Engine {
+func Setup(cfg *peer.PeerConfig) *gin.Engine {
 	r := gin.New()
 	r.Use(CORSMiddleware())
 	r.Use(recoveryLogger())
@@ -20,7 +21,15 @@ func Setup() *gin.Engine {
 		// word := c.Param("word")
 	})
 	r.GET("/store", func(c *gin.Context) { // Get all jobs in a group
-		// word := c.Param("word")
+		word := c.Param("word")
+		url := c.Param("url")
+		err := cfg.PutData(c.Request.Context(), word, url)
+		if err != nil {
+			log.Print(err)
+			c.String(http.StatusFailedDependency, "NO OK\n")
+		} else {
+			c.String(http.StatusOK, "OK\n")
+		}
 	})
 
 	return r

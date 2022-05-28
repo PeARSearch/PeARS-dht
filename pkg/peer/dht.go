@@ -11,8 +11,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type blankValidator struct{}
+
+func (blankValidator) Validate(_ string, _ []byte) error        { return nil }
+func (blankValidator) Select(_ string, _ [][]byte) (int, error) { return 0, nil }
+
 func NewPearDHT(ctx context.Context, host host.Host, bootstrapPears []multiaddr.Multiaddr) (*dht.IpfsDHT, error) {
-	var options []dht.Option
+	options := []dht.Option{
+		dht.ProtocolPrefix("/pears"),
+		dht.NamespacedValidator("v", blankValidator{}),
+	}
+
 	var wg sync.WaitGroup
 
 	if len(bootstrapPears) == 0 {
