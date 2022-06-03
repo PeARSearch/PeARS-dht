@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -17,18 +18,24 @@ func Setup(cfg *peer.PeerConfig) *gin.Engine {
 	r.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "OK\n")
 	})
-	r.GET("/search", func(c *gin.Context) {
-		// word := c.Param("word")
+	r.GET("/search/:word", func(c *gin.Context) {
+		word := c.Param("word")
+		val, err := cfg.GetData(c.Request.Context(), word)
+		if err != nil {
+			c.String(http.StatusFailedDependency, "NO OK\n")
+		} else {
+			c.String(http.StatusOK, fmt.Sprintf("%s\n", val))
+		}
 	})
-	r.GET("/store", func(c *gin.Context) { // Get all jobs in a group
+	r.GET("/store/:word/:url", func(c *gin.Context) { // Get all jobs in a group
 		word := c.Param("word")
 		url := c.Param("url")
 		err := cfg.PutData(c.Request.Context(), word, url)
 		if err != nil {
-			log.Print(err)
 			c.String(http.StatusFailedDependency, "NO OK\n")
 		} else {
 			c.String(http.StatusOK, "OK\n")
+
 		}
 	})
 

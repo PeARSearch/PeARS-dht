@@ -74,7 +74,7 @@ var pearCmd = &cobra.Command{ // nolint:gochecknoglobals
 		peerConfig.SetDht(dht)
 
 		r := client.Setup(peerConfig)
-		addr := fmt.Sprintf("%s:%d", "127.0.0.1", 8888)
+		addr := fmt.Sprintf("%s:%d", "127.0.0.1", peerConfig.ServerPort)
 		log.Debugf("ready to serve at %s", addr)
 
 		// we start the REST API to get the value from the orchard
@@ -157,6 +157,7 @@ func init() {
 		"(default is $HOME/.cacophony-dht.yaml)")
 
 	pearCmd.Flags().IntVarP(&peerConfig.ListenPort, "port", "p", 8080, "port to listen to")
+	pearCmd.Flags().IntVarP(&peerConfig.ServerPort, "server-port", "y", 8888, "port to listen to")
 	pearCmd.Flags().StringVarP(&peerConfig.Contacts, "contacts", "t", "", "target peers to dial(give a comma separated list)")
 	pearCmd.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
 

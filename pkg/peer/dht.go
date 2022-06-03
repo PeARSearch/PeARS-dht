@@ -26,7 +26,11 @@ func NewPearDHT(ctx context.Context, host host.Host, bootstrapPears []multiaddr.
 
 	if len(bootstrapPears) == 0 {
 		options = append(options, dht.Mode(dht.ModeServer))
+	} else {
+		// the following is a hack for dev purposes
+		options = append(options, dht.Mode(dht.ModeServer))
 	}
+	//
 
 	kadht, err := dht.New(ctx, host, options...)
 	if err != nil {

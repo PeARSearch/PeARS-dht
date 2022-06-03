@@ -33,7 +33,9 @@ func NewPeer(ctx context.Context, seed int64, port int) (host.Host, error) {
 	options := []libp2p.Option{
 		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port)),
 		libp2p.Identity(privKey),
-		libp2p.DisableRelay(),
+		libp2p.NATPortMap(),
+		libp2p.EnableRelay(),
+		libp2p.EnableAutoRelay(),
 		libp2p.NoSecurity, // may be we don't need this, this inits an insecure connection
 	}
 
