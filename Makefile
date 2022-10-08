@@ -19,11 +19,27 @@ check-%: # detection of required software.
 
 ## build: Build the container image
 build: check-docker
-	@docker build --no-cache --pull -f build/packages/Dockerfile -t ${PROJECTNAME}:local-build .
+	@docker build --no-cache --target build  --pull -f build/packages/Dockerfile -t ${PROJECTNAME}:local-build .
 
+## deploy: Deploy the container image
+deploy: check-docker
+	@docker build --target deploy  --pull -f build/packages/Dockerfile -t ${PROJECTNAME}:local-deploy .
+
+port ?= 8080
+serverport ?= 8888
+contact ?=
 ## run-pear: Run a local pear with docker in server mode(as the first node)
-run-pear: build delete-docker-ps
-	@docker run --name pear-1 -p 8080:8080 -p 8888:8888 -it ${PROJECTNAME}:local-build
+run-pear: deploy
+	@echo ""
+	@echo ""
+	@echo "Successfully built the container"
+	@echo ""
+	@echo "Creating a new PeAR..."
+ifneq ($(contact), '')
+	@echo "Connecting to PeAR ${contact}..."
+endif
+	@ export rand=$$RANDOM && \
+		docker run -e "CDHT_CONTACTS=${contact}" -e "CDHT_SEED=$$rand" -e "CDHT_PORT=${port}" -e "CDHT_SERVER_PORT=${serverport}" --network="host" --name pear-$$rand -it ${PROJECTNAME}:local-deploy
 
 ## delete-pear: Delete the pear
 delete-pear: delete-docker-ps delete-docker-image

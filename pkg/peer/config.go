@@ -6,7 +6,6 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	// dualdht "github.com/libp2p/go-libp2p-kad-dht/dual"
 )
 
 type PeerConfig struct {
@@ -34,6 +33,9 @@ func (p *PeerConfig) PutData(ctx context.Context, word string, url string) error
 }
 
 func (p *PeerConfig) GetData(ctx context.Context, word string) ([]byte, error) {
-	return p.dht.GetValue(ctx, fmt.Sprintf("/v/%s", word))
+	data, err := p.dht.GetClosestPeers(ctx, fmt.Sprintf("/v/%s", word))
+	fmt.Println(data)
+	fmt.Println(err)
 
+	return p.dht.GetValue(ctx, fmt.Sprintf("/v/%s", word))
 }

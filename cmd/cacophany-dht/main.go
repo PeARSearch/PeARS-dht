@@ -36,7 +36,7 @@ var pearCmd = &cobra.Command{ // nolint:gochecknoglobals
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 
-		log.Debug("Creating the basic host for the peer")
+		log.Info("Creating the basic host for the peer")
 
 		host, err := peer.NewPeer(ctx, int64(peerConfig.Seed), peerConfig.ListenPort)
 		if err != nil {
@@ -45,22 +45,29 @@ var pearCmd = &cobra.Command{ // nolint:gochecknoglobals
 
 		// initialize the Peer
 
-		log.Infof("Host ID: %s", host.ID().Pretty())
-		log.Info("Connection addresses are:")
+		log.Infof("\n\nHost ID: %s", host.ID().Pretty())
+		log.Info("\n\nConnection addresses are:")
 
 		for _, addr := range host.Addrs() {
 			log.Infof("  %s/p2p/%s", addr, host.ID().Pretty())
 		}
 
+		log.Info("\n\n**Please use one of the above IDs for other nodes to join**\n\n")
+
 		// initialize the DHT
 		var bootstrapPeARS []multiaddr.Multiaddr
 		if len(peerConfig.Contacts) > 0 {
 			for _, id := range strings.Split(peerConfig.Contacts, ",") {
+				if id == "" {
+					continue
+				}
+
 				multiaddress, err := multiaddr.NewMultiaddr(id)
 				if err != nil {
 					log.Errorf("Peer %s couldn't be connected to: %-v", id, err)
 					continue
 				}
+				log.Infof("Connected successfully to peer %s", id)
 
 				bootstrapPeARS = append(bootstrapPeARS, multiaddress)
 			}
@@ -123,18 +130,17 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Environment variables can't have dashes in them, so bind them to their equivalent
 		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
-		if strings.Contains(f.Name, "-") {
-			envVarSuffix := strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))
 
-			err := v.BindEnv(f.Name, fmt.Sprintf("%s_%s", "CDHT", envVarSuffix))
-			if err != nil {
-				log.Fatal(err)
-				os.Exit(-1)
-			}
+		envVarSuffix := strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))
+
+		err := v.BindEnv(f.Name, fmt.Sprintf("%s_%s", "CDHT", envVarSuffix))
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(-1)
 		}
 
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(f.Name) {
+		if v.IsSet(f.Name) {
 			val := v.Get(f.Name)
 
 			err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
@@ -151,7 +157,6 @@ func init() {
 
 	pearCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l",
 		"info", "set log level verbosity (options: debug, info, error, warning)")
-	bindFlags(pearCmd, v)
 
 	pearCmd.PersistentFlags().StringVarP(&cfgFile, "config", "f", "", "config file "+
 		"(default is $HOME/.cacophony-dht.yaml)")
@@ -159,9 +164,11 @@ func init() {
 	pearCmd.Flags().IntVarP(&peerConfig.ListenPort, "port", "p", 8080, "port to listen to")
 	pearCmd.Flags().IntVarP(&peerConfig.ServerPort, "server-port", "y", 8888, "port to listen to")
 	pearCmd.Flags().StringVarP(&peerConfig.Contacts, "contacts", "t", "", "target peers to dial(give a comma separated list)")
-	pearCmd.Flags().IntVarP(&peerConfig.Seed, "seed", "s", 0, "random seed for id generation")
+	pearCmd.Flags().IntVarP(&peerConfig.Seed, "seed", "s", -1, "random seed for id generation")
 
 	pearCmd.MarkFlagRequired("listen") // we require the port to bind the service to
+
+	bindFlags(pearCmd, v)
 }
 
 func readConfigFile() *viper.Viper {
