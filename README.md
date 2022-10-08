@@ -68,3 +68,22 @@ We use the `make` targets defined in `Makefile` to create a multi-node setup loc
 
   Make sure the `port` and `serverport` are not already in use. If you want to
   connect to more that one contacts, you can give the ips in a comman separated list.
+
+## Adding items to the DHT
+
+Currently there are two API endpoints open(one for each pear) that one can use
+to feed data and look it up later. Here we use the `serverport` that was
+provided in the above commands to communicate with the API. You can try the
+following command:
+
+### To store data for first pear
+
+```bash
+curl -X GET -H "Content-Type: application/json"  http://localhost:8888/store/<datapoint>/<url>
+```
+
+### To look up the data from the second pear
+
+```bash
+curl -X GET -H "Content-Type: application/json"  http://localhost:9089/search/<datapoint>
+```
