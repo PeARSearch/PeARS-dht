@@ -1,5 +1,7 @@
 # PeARS-dht
 
+> This library is in its early development stage. Currently it is a very simple [kademlia DHT](https://en.wikipedia.org/wiki/Kademlia)
+
 DHT implementation for PeARS network
 
 ## Requirements
