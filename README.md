@@ -1,12 +1,10 @@
-# cacophony-dht
+# PeARS-dht
 
 DHT implementation for PeARS network
 
 ## Requirements
 
-```bash
-[docker](https://docs.docker.com/get-docker/)
-```
+- [docker](https://docs.docker.com/get-docker/)
 
 ## Usage
 
