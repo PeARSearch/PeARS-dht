@@ -3,7 +3,6 @@
 
 # PeARS-dht
 
-
 DHT implementation for PeARS network
 
 ## Requirements
@@ -62,7 +61,7 @@ We use the `make` targets defined in `Makefile` to create a multi-node setup loc
 
   Note one of the `ipv4` addresses listed. For eg: ` /ip4/192.168.1.206/tcp/8080/p2p/QmeZXiuPsLsoNpGPmP3UpdDe4pX1zgv18RXZU8cmwBy7rj`
 
-  - Create a second node that joins the network by running:
+  - Open a new terminal window, create a second node that joins the network by running:
 
   ```
   make run-pears port=7878 serverport=9089 contact=/ip4/192.168.1.206/tcp/8080/p2p/QmeZXiuPsLsoNpGPmP3UpdDe4pX1zgv18RXZU8cmwBy7rj

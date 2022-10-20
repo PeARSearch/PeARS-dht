@@ -1,4 +1,4 @@
-module github.com/PeARSearch/cacophony-dht
+module github.com/PeARSearch/pears-dht
 
 go 1.19
 

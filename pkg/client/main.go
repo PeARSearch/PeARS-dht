@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/PeARSearch/cacophony-dht/pkg/peer"
+	"github.com/PeARSearch/pears-dht/pkg/peer"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )

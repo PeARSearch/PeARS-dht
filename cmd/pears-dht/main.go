@@ -14,8 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/PeARSearch/cacophony-dht/pkg/client"
-	"github.com/PeARSearch/cacophony-dht/pkg/peer"
+	"github.com/PeARSearch/pears-dht/pkg/client"
+	"github.com/PeARSearch/pears-dht/pkg/peer"
 
 	// nolint:typecheck
 	"github.com/spf13/pflag"
@@ -29,7 +29,7 @@ var peerConfig = peer.NewPeerConfig()
 
 var pearCmd = &cobra.Command{ // nolint:gochecknoglobals
 	PersistentPreRunE: configLogger,
-	Use:               "cacophony-dht",
+	Use:               "pears-dht",
 	Short:             "Let's make some noise",
 	SilenceUsage:      true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -159,7 +159,7 @@ func init() {
 		"info", "set log level verbosity (options: debug, info, error, warning)")
 
 	pearCmd.PersistentFlags().StringVarP(&cfgFile, "config", "f", "", "config file "+
-		"(default is $HOME/.cacophony-dht.yaml)")
+		"(default is $HOME/.pears-dht.yaml)")
 
 	pearCmd.Flags().IntVarP(&peerConfig.ListenPort, "port", "p", 8080, "port to listen to")
 	pearCmd.Flags().IntVarP(&peerConfig.ServerPort, "server-port", "y", 8888, "port to listen to")

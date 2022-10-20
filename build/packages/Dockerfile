@@ -8,7 +8,7 @@ COPY go.sum go.sum
 COPY cmd cmd
 COPY pkg pkg
 
-RUN go build -o /pears-dht ./cmd/cacophany-dht/main.go
+RUN go build -o /pears-dht ./cmd/pears-dht/main.go
 
 FROM alpine:3.16 as deploy
 

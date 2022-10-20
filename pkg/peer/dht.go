@@ -17,8 +17,7 @@ func (blankValidator) Validate(_ string, _ []byte) error        { return nil }
 func (blankValidator) Select(_ string, _ [][]byte) (int, error) { return 0, nil }
 
 func NewPearDHT(ctx context.Context, host host.Host, bootstrapPears []multiaddr.Multiaddr) (*dht.IpfsDHT, error) {
-	options := []dht.Option{
-		dht.ProtocolPrefix("/pears"),
+	options := []dht.Option{dht.ProtocolPrefix("/pears"),
 		dht.NamespacedValidator("v", blankValidator{}),
 	}
 
