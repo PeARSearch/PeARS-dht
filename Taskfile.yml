@@ -7,4 +7,4 @@ tasks:
 
   protogen:
     cmds:
-      - protoc --proto_path=pkg/dht/proto pkg/dht/proto/*.proto --go-grpc_out=pkg/dht/proto
+      - protoc --proto_path=pkg/dht/proto --go_out=pkg/dht/proto/ --go_opt=paths=source_relative --go-grpc_out=pkg/dht/proto/ --go-grpc_opt=paths=source_relative pkg/dht/proto/dht.proto
