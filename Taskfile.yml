@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build -v -i main.go
+
+  protogen:
+    cmds:
+      - protoc --proto_path=pkg/dht/proto pkg/dht/proto/*.proto --go-grpc_out=pkg/dht/proto

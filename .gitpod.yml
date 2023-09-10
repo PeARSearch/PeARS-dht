@@ -3,9 +3,29 @@
 # and commit this file to your remote git repository to share the goodness with others.
 
 # Learn more from ready-to-use templates: https://www.gitpod.io/docs/introduction/getting-started/quickstart
+image:
+  file: .gitpod.Dockerfile
 
 tasks:
-  - init: go get && go build ./... && go test ./... && make
-    command: go run .
-
-
+  - name: prep
+    init: |
+      go-task protogen
+      pre-commit install --install-hooks
+    command: |
+      echo "Happy Hacking 🍐"
+vscode:
+  extensions:
+    - EditorConfig.EditorConfig
+    - hashicorp.terraform
+    - ms-python.python
+    - golang.go
+    - zxh404.vscode-proto3
+github:
+  prebuilds:
+    master: true
+    branches: false
+    pullRequests: true
+    pullRequestsFromForks: false
+    addCheck: false
+    addComment: false
+    addBadge: true
