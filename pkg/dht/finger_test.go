@@ -3,7 +3,7 @@ package dht
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/PeARSearch/PeARS-dht/pkg/proto"
+	protov1 "github.com/PeARSearch/PeARS-dht/pkg/proto/v1"
 	"math/big"
 	"reflect"
 	"testing"
@@ -30,7 +30,7 @@ func TestNewFingerEntry(t *testing.T) {
 
 func Test_newFingerTable(t *testing.T) {
 	type args struct {
-		node *models.Node
+		node *protov1.Node
 		m    int
 	}
 	tests := []struct {
@@ -53,7 +53,7 @@ func Test_newFingerTable(t *testing.T) {
 func Test_newFingerEntry(t *testing.T) {
 	type args struct {
 		id   []byte
-		node *models.Node
+		node *protov1.Node
 	}
 	tests := []struct {
 		name string

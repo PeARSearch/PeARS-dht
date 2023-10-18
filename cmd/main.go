@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -18,33 +18,39 @@ var id string
 var rootCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run the PeARS DHT in a standalone or p2p mode",
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	Long: `Run a full fledged distributed network`,
+	Run: func(cmd *cobra.Command, args []string) {
 
 		config := dht.DefaultConfig()
 		config.Id = id
 		config.Addr = fmt.Sprintf("0.0.0.0:%s", port)
 		config.Timeout = 10 * time.Millisecond
 		config.MaxIdle = 100 * time.Millisecond
-	
+
 		n, err := dht.NewNode(config, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Printf("To connect to the new node, use the address %s", fmt.Sprint(n.Addr))
+
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		<-c
 		n.Stop()
 
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+		// let us quit grazefully
+		os.Exit(0)
+	},
 }
 
-func main() {
-	rootCmd.PersistentFlags().StringVarP(&bootstrapAddr, "join-address", "j", "", "Peer address to join the network with")
-	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "", "Port for the DHT to listen in locally")
-	rootCmd.PersistentFlags().StringVarP(&id, "ID", "s", "0", "Seed to create the peer ID from")
+func Execute() error {
+	return rootCmd.Execute()
+}
 
-	Execute()
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&bootstrapAddr, "join-address", "j", "", "Peer address to join the network with")
+	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "8080", "Port for the DHT to listen in locally")
+	rootCmd.PersistentFlags().StringVarP(&id, "ID", "s", "0", "Seed to create the peer ID from")
+	_ = rootCmd.MarkFlagRequired(port)
 }

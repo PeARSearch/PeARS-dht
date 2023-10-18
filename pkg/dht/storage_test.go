@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/PeARSearch/PeARS-dht/pkg/proto"
+	protov1 "github.com/PeARSearch/PeARS-dht/pkg/proto/v1"
 )
 
 func TestNewMapStore(t *testing.T) {
@@ -170,7 +170,7 @@ func Test_mapStore_Between(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []*models.KV
+		want    []*protov1.KV
 		wantErr bool
 	}{
 		// TODO: Add test cases.

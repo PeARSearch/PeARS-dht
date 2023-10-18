@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/PeARSearch/PeARS-dht/pkg/proto/v1";
+
 package proto;
 
 // Chord is the service for inter-node communication.

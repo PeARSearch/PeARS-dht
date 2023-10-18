@@ -3,7 +3,7 @@ package dht
 import (
 	"errors"
 	"fmt"
-	"github.com/PeARSearch/PeARS-dht/pkg/proto"
+	protov1 "github.com/PeARSearch/PeARS-dht/pkg/proto/v1"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
@@ -13,12 +13,12 @@ import (
 )
 
 var (
-	emptyNode                = &models.Node{}
-	emptyRequest             = &models.ER{}
-	emptyGetResponse         = &models.GetResponse{}
-	emptySetResponse         = &models.SetResponse{}
-	emptyDeleteResponse      = &models.DeleteResponse{}
-	emptyRequestKeysResponse = &models.RequestKeysResponse{}
+	emptyNode                = &protov1.Node{}
+	emptyRequest             = &protov1.ER{}
+	emptyGetResponse         = &protov1.GetResponse{}
+	emptySetResponse         = &protov1.SetResponse{}
+	emptyDeleteResponse      = &protov1.DeleteResponse{}
+	emptyRequestKeysResponse = &protov1.RequestKeysResponse{}
 )
 
 func Dial(addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
@@ -34,20 +34,20 @@ type Transport interface {
 	Stop() error
 
 	//RPC
-	GetSuccessor(*models.Node) (*models.Node, error)
-	FindSuccessor(*models.Node, []byte) (*models.Node, error)
-	GetPredecessor(*models.Node) (*models.Node, error)
-	Notify(*models.Node, *models.Node) error
-	CheckPredecessor(*models.Node) error
-	SetPredecessor(*models.Node, *models.Node) error
-	SetSuccessor(*models.Node, *models.Node) error
+	GetSuccessor(*protov1.Node) (*protov1.Node, error)
+	FindSuccessor(*protov1.Node, []byte) (*protov1.Node, error)
+	GetPredecessor(*protov1.Node) (*protov1.Node, error)
+	Notify(*protov1.Node, *protov1.Node) error
+	CheckPredecessor(*protov1.Node) error
+	SetPredecessor(*protov1.Node, *protov1.Node) error
+	SetSuccessor(*protov1.Node, *protov1.Node) error
 
 	//Storage
-	GetKey(*models.Node, string) (*models.GetResponse, error)
-	SetKey(*models.Node, string, string) error
-	DeleteKey(*models.Node, string) error
-	RequestKeys(*models.Node, []byte, []byte) ([]*models.KV, error)
-	DeleteKeys(*models.Node, []string) error
+	GetKey(*protov1.Node, string) (*protov1.GetResponse, error)
+	SetKey(*protov1.Node, string, string) error
+	DeleteKey(*protov1.Node, string) error
+	RequestKeys(*protov1.Node, []byte, []byte) ([]*protov1.KV, error)
+	DeleteKeys(*protov1.Node, []string) error
 }
 
 type GrpcTransport struct {
@@ -66,7 +66,7 @@ type GrpcTransport struct {
 	shutdown int32
 }
 
-// func NewGrpcTransport(config *Config) (models.ChordClient, error) {
+// func NewGrpcTransport(config *Config) (protov1.ChordClient, error) {
 func NewGrpcTransport(config *Config) (*GrpcTransport, error) {
 
 	addr := config.Addr
@@ -95,7 +95,7 @@ func NewGrpcTransport(config *Config) (*GrpcTransport, error) {
 
 type grpcConn struct {
 	addr       string
-	client     models.ChordClient
+	client     protov1.ChordClient
 	conn       *grpc.ClientConn
 	lastActive time.Time
 }
@@ -105,7 +105,7 @@ func (g *grpcConn) Close() {
 }
 
 func (g *GrpcTransport) registerNode(node *Node) {
-	models.RegisterChordServer(g.server, node)
+	protov1.RegisterChordServer(g.server, node)
 }
 
 func (g *GrpcTransport) GetServer() *grpc.Server {
@@ -115,7 +115,7 @@ func (g *GrpcTransport) GetServer() *grpc.Server {
 // Gets an outbound connection to a host
 func (g *GrpcTransport) getConn(
 	addr string,
-) (models.ChordClient, error) {
+) (protov1.ChordClient, error) {
 
 	g.poolMtx.RLock()
 
@@ -137,7 +137,7 @@ func (g *GrpcTransport) getConn(
 		return nil, err
 	}
 
-	client := models.NewChordClient(conn)
+	client := protov1.NewChordClient(conn)
 	cc = &grpcConn{addr, client, conn, time.Now()}
 	g.poolMtx.Lock()
 	if g.pool == nil {
@@ -227,7 +227,7 @@ func (g *GrpcTransport) listen() {
 }
 
 // GetSuccessor the successor ID of a remote node.
-func (g *GrpcTransport) GetSuccessor(node *models.Node) (*models.Node, error) {
+func (g *GrpcTransport) GetSuccessor(node *protov1.Node) (*protov1.Node, error) {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ func (g *GrpcTransport) GetSuccessor(node *models.Node) (*models.Node, error) {
 }
 
 // FindSuccessor the successor ID of a remote node.
-func (g *GrpcTransport) FindSuccessor(node *models.Node, id []byte) (*models.Node, error) {
+func (g *GrpcTransport) FindSuccessor(node *protov1.Node, id []byte) (*protov1.Node, error) {
 	// fmt.Println("yo", node.Id, id)
 	client, err := g.getConn(node.Addr)
 	if err != nil {
@@ -248,11 +248,11 @@ func (g *GrpcTransport) FindSuccessor(node *models.Node, id []byte) (*models.Nod
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	return client.FindSuccessor(ctx, &models.ID{Id: id})
+	return client.FindSuccessor(ctx, &protov1.ID{Id: id})
 }
 
 // GetPredecessor the successor ID of a remote node.
-func (g *GrpcTransport) GetPredecessor(node *models.Node) (*models.Node, error) {
+func (g *GrpcTransport) GetPredecessor(node *protov1.Node) (*protov1.Node, error) {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return nil, err
@@ -263,7 +263,7 @@ func (g *GrpcTransport) GetPredecessor(node *models.Node) (*models.Node, error) 
 	return client.GetPredecessor(ctx, emptyRequest)
 }
 
-func (g *GrpcTransport) SetPredecessor(node *models.Node, pred *models.Node) error {
+func (g *GrpcTransport) SetPredecessor(node *protov1.Node, pred *protov1.Node) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (g *GrpcTransport) SetPredecessor(node *models.Node, pred *models.Node) err
 	return err
 }
 
-func (g *GrpcTransport) SetSuccessor(node *models.Node, succ *models.Node) error {
+func (g *GrpcTransport) SetSuccessor(node *protov1.Node, succ *protov1.Node) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func (g *GrpcTransport) SetSuccessor(node *models.Node, succ *models.Node) error
 	return err
 }
 
-func (g *GrpcTransport) Notify(node, pred *models.Node) error {
+func (g *GrpcTransport) Notify(node, pred *protov1.Node) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -300,7 +300,7 @@ func (g *GrpcTransport) Notify(node, pred *models.Node) error {
 
 }
 
-func (g *GrpcTransport) CheckPredecessor(node *models.Node) error {
+func (g *GrpcTransport) CheckPredecessor(node *protov1.Node) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -308,11 +308,11 @@ func (g *GrpcTransport) CheckPredecessor(node *models.Node) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	_, err = client.CheckPredecessor(ctx, &models.ID{Id: node.Id})
+	_, err = client.CheckPredecessor(ctx, &protov1.ID{Id: node.Id})
 	return err
 }
 
-func (g *GrpcTransport) GetKey(node *models.Node, key string) (*models.GetResponse, error) {
+func (g *GrpcTransport) GetKey(node *protov1.Node, key string) (*protov1.GetResponse, error) {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return nil, err
@@ -320,10 +320,10 @@ func (g *GrpcTransport) GetKey(node *models.Node, key string) (*models.GetRespon
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	return client.XGet(ctx, &models.GetRequest{Key: key})
+	return client.XGet(ctx, &protov1.GetRequest{Key: key})
 }
 
-func (g *GrpcTransport) SetKey(node *models.Node, key, value string) error {
+func (g *GrpcTransport) SetKey(node *protov1.Node, key, value string) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -331,11 +331,11 @@ func (g *GrpcTransport) SetKey(node *models.Node, key, value string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	_, err = client.XSet(ctx, &models.SetRequest{Key: key, Value: value})
+	_, err = client.XSet(ctx, &protov1.SetRequest{Key: key, Value: value})
 	return err
 }
 
-func (g *GrpcTransport) DeleteKey(node *models.Node, key string) error {
+func (g *GrpcTransport) DeleteKey(node *protov1.Node, key string) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -343,11 +343,11 @@ func (g *GrpcTransport) DeleteKey(node *models.Node, key string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
-	_, err = client.XDelete(ctx, &models.DeleteRequest{Key: key})
+	_, err = client.XDelete(ctx, &protov1.DeleteRequest{Key: key})
 	return err
 }
 
-func (g *GrpcTransport) RequestKeys(node *models.Node, from, to []byte) ([]*models.KV, error) {
+func (g *GrpcTransport) RequestKeys(node *protov1.Node, from, to []byte) ([]*protov1.KV, error) {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return nil, err
@@ -356,7 +356,7 @@ func (g *GrpcTransport) RequestKeys(node *models.Node, from, to []byte) ([]*mode
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
 	val, err := client.XRequestKeys(
-		ctx, &models.RequestKeysRequest{From: from, To: to},
+		ctx, &protov1.RequestKeysRequest{From: from, To: to},
 	)
 	if err != nil {
 		return nil, err
@@ -364,7 +364,7 @@ func (g *GrpcTransport) RequestKeys(node *models.Node, from, to []byte) ([]*mode
 	return val.Values, nil
 }
 
-func (g *GrpcTransport) DeleteKeys(node *models.Node, keys []string) error {
+func (g *GrpcTransport) DeleteKeys(node *protov1.Node, keys []string) error {
 	client, err := g.getConn(node.Addr)
 	if err != nil {
 		return err
@@ -373,7 +373,7 @@ func (g *GrpcTransport) DeleteKeys(node *models.Node, keys []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
 	defer cancel()
 	_, err = client.XMultiDelete(
-		ctx, &models.MultiDeleteRequest{Keys: keys},
+		ctx, &protov1.MultiDeleteRequest{Keys: keys},
 	)
 	return err
 }

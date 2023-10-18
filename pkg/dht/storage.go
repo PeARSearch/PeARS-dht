@@ -2,7 +2,7 @@ package dht
 
 import (
 	// "errors"
-	"github.com/PeARSearch/PeARS-dht/pkg/proto"
+	protov1 "github.com/PeARSearch/PeARS-dht/pkg/proto/v1"
 	"hash"
 	// "math/big"
 )
@@ -11,7 +11,7 @@ type Storage interface {
 	Get(string) ([]byte, error)
 	Set(string, string) error
 	Delete(string) error
-	Between([]byte, []byte) ([]*models.KV, error)
+	Between([]byte, []byte) ([]*protov1.KV, error)
 	MDelete(...string) error
 }
 
@@ -55,15 +55,15 @@ func (a *mapStore) Delete(key string) error {
 	return nil
 }
 
-func (a *mapStore) Between(from []byte, to []byte) ([]*models.KV, error) {
-	vals := make([]*models.KV, 0, 10)
+func (a *mapStore) Between(from []byte, to []byte) ([]*protov1.KV, error) {
+	vals := make([]*protov1.KV, 0, 10)
 	for k, v := range a.data {
 		hashedKey, err := a.hashKey(k)
 		if err != nil {
 			continue
 		}
 		if betweenRightIncl(hashedKey, from, to) {
-			pair := &models.KV{
+			pair := &protov1.KV{
 				Key:   k,
 				Value: v,
 			}
