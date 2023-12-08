@@ -13,14 +13,11 @@ RUN sudo apt-get install -y \
 RUN sudo apt-get update && sudo apt-get install -y \
         build-essential pkg-config cmake git wget \
         libtool autotools-dev autoconf graphviz doxygen\
-        cython3 python3-dev python3-setuptools python3-build python3-virtualenv \
+        cython3 cython python3-dev python3-setuptools python3-build python3-virtualenv \
         libncurses5-dev libreadline-dev nettle-dev libcppunit-dev \
         libgnutls28-dev libuv1-dev libjsoncpp-dev libargon2-dev \
-        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev \
+        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev  openssh-client protobuf-compiler \
     && sudo apt-get clean && sudo  rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-# Install python binding dependencies
-RUN sudo apt-get install -y  cython3 python3-dev python3-setuptools openssh-client protobuf-compiler
 
 # Build & install restinio (for proxy server/client):
 RUN mkdir restinio && cd restinio \

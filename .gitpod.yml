@@ -11,8 +11,9 @@ tasks:
     init: |
       pre-commit install --install-hooks
     command: |
-      sudo python3 -m venv pears_dht
       pyenv global 3.12.0
+      sudo python3 -m venv ~/.dht_venv
+      source ~/.dht_venv/bin/activate
       protoc --proto_path=. --python_out=. pears_dht/proto/messages/*.proto
       echo "Happy Hacking 🍐"
 vscode:
