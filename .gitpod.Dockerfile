@@ -52,4 +52,6 @@ RUN pip3 install --upgrade cython
 RUN make -j8
 RUN sudo make install
 
+ENV PYTHONPATH=/workspace/PeARS-dht
+
 WORKDIR /workspace/PeARS-dht

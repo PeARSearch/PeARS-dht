@@ -30,7 +30,7 @@ def run():
     args = parser.parse_args()
 
     # Assuming your gRPC server is running on localhost at port 50051
-    channel = grpc.insecure_channel('localhost:8080')
+    channel = grpc.insecure_channel('localhost:' + args.serverport)
     stub = dht_pb2_grpc.DhtMessageStub(channel)
 
     if args.command == 'put':
