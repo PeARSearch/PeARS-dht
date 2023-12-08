@@ -13,10 +13,10 @@ RUN sudo apt-get install -y \
 RUN sudo apt-get update && sudo apt-get install -y \
         build-essential pkg-config cmake git wget \
         libtool autotools-dev autoconf graphviz doxygen\
-        cython3 cython python3-dev python3-setuptools python3-build python3-virtualenv \
+        cython3 python3-dev python3-setuptools python3-build python3-virtualenv \
         libncurses5-dev libreadline-dev nettle-dev libcppunit-dev \
         libgnutls28-dev libuv1-dev libjsoncpp-dev libargon2-dev \
-        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev  openssh-client protobuf-compiler \
+        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev  openssh-client \
     && sudo apt-get clean && sudo  rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # Build & install restinio (for proxy server/client):
@@ -48,7 +48,7 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr \
 				-DOPENDHT_PROXY_CLIENT=On \
             -DOPENDHT_SYSTEMD=Off
 
-RUN pip3 install --upgrade cython
+RUN pip3 install --upgrade cython protobuf-compiler
 RUN make -j8
 RUN sudo make install
 
