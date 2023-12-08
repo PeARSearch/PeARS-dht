@@ -48,7 +48,7 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr \
 				-DOPENDHT_PROXY_CLIENT=On \
             -DOPENDHT_SYSTEMD=Off
 
-RUN pip3 install --upgrade cython
+RUN pip3 install --upgrade cython protobuf-compiler
 RUN make -j8
 RUN sudo make install
 

@@ -9,7 +9,7 @@ import os.path, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from pears_dht.proto.messages.dht_pb2_grpc import DhtMessageServicer, add_DhtMessageServicer_to_server
-from pears_dht.proto.messages.dht_pb2 import PutResponse, GetResponse
+from pears_dht.proto.messages.dht_pb2 import PutResponse, GetResponse, PutRequest, GetRequest
 
 
 class DhtMessageService(DhtMessageServicer):
@@ -23,13 +23,17 @@ class DhtMessageService(DhtMessageServicer):
             b_url = urlparse('//'+bootstrap)
             self.node.bootstrap(b_url.hostname, str(b_url.port) if b_url.port else '4222')
 
-    def Put(self, request, context):
+    def Put(self, request: PutRequest, context):
         # Implement your logic for Put here
+        self.node.put(dht.InfoHash.get(request.key), dht.Value(request.value))
         return PutResponse(success=True)
 
-    def Get(self, request, context):
+    def Get(self, request: GetRequest, context):
         # Implement your logic for Get here
-        return GetResponse(value=b'your_value')
+        results = self.node.get(dht.InfoHash.get(request.key))
+        for r in results:
+            print(r.data)
+        return GetResponse(value=[r.data for r in results])
  
 
 def serve_grpc(address: str, dht_port: str, bootstrap_node_ip: str):
