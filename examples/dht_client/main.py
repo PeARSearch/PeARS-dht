@@ -1,5 +1,9 @@
 import argparse
 import grpc
+
+import os.path, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)) + "/..")
+
 from pears_dht.proto.messages import dht_pb2
 from pears_dht.proto.messages import dht_pb2_grpc
 

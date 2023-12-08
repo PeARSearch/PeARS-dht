@@ -4,6 +4,10 @@ from threading import Thread
 import opendht as dht
 import argparse
 
+
+import os.path, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from pears_dht.proto.messages.dht_pb2_grpc import DhtMessageServicer, add_DhtMessageServicer_to_server
 from pears_dht.proto.messages.dht_pb2 import PutResponse, GetResponse
 
