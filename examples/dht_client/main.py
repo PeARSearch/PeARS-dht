@@ -16,6 +16,7 @@ def get(stub, key):
 def run():
     parser = argparse.ArgumentParser(description='DHT Client')
     subparsers = parser.add_subparsers(dest='command')
+    parser.add_argument('--serverport', default="8080", required=False, help='Port where the DHT server is running')
 
     # Put command
     put_parser = subparsers.add_parser('put')
@@ -29,7 +30,7 @@ def run():
     args = parser.parse_args()
 
     # Assuming your gRPC server is running on localhost at port 50051
-    channel = grpc.insecure_channel('localhost:50051')
+    channel = grpc.insecure_channel('localhost:8080')
     stub = dht_pb2_grpc.DhtMessageStub(channel)
 
     if args.command == 'put':

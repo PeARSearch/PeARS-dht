@@ -1,28 +1,65 @@
 import grpc
 from concurrent import futures
 from threading import Thread
+import opendht as dht
+import argparse
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/proto/messages')
 
 from pears_dht.proto.messages.dht_pb2_grpc import DhtMessageServicer, add_DhtMessageServicer_to_server
+from pears_dht.proto.messages.dht_pb2 import PutResponse, GetResponse
+
+
+class DhtMessageService(DhtMessageServicer):
+    isLeaf = True
+    node = dht.DhtRunner()
+
+    def __init__(self, port: int, bootstrap: str):
+        print("Starting DHT node in port", port)
+        self.node.run(port=port)
+        if bootstrap != "":
+            b_url = urlparse('//'+bootstrap)
+            self.node.bootstrap(b_url.hostname, str(b_url.port) if b_url.port else '4222')
+
+    def Put(self, request, context):
+        # Implement your logic for Put here
+        return PutResponse(success=True)
+
+    def Get(self, request, context):
+        # Implement your logic for Get here
+        return GetResponse(value=b'your_value')
  
 
-def serve_grpc(address: str):
+def serve_grpc(address: str, dht_port: str, bootstrap_node_ip: str):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     dht_message_servicer = DhtMessageServicer()
-    add_DhtMessageServicer_to_server(dht_message_servicer, server)
+    add_DhtMessageServicer_to_server(DhtMessageService(int(dht_port), bootstrap_node_ip), server)
     server.add_insecure_port(address)
     server.start()
     print(f"grpc server listening on {address}")
     server.wait_for_termination()
 
+def run():
+    parser = argparse.ArgumentParser(description='DHT Node')
+    subparsers = parser.add_subparsers(dest='command')
+
+    parser.add_argument('--dhtport', default="4222", required=False, help='Port to start the DHT in (Other nodes in the network will use this to connect to this node)')
+    parser.add_argument('--serverport', default="8080", required=False, help='Port to start the API in (clients will be able to feed data to the DHT on this port)')
+    parser.add_argument('--bootstrapip', default="", required=False, help='IP of the node to connect to when bootstrapping, in the form 10.45.6.6:4222')
+
+    args = parser.parse_args()
+
+    return args
+
+
 if __name__ == "__main__":
-    grpc_address = "localhost:8080"
-    dht_port = 50051
+    args = run()
+
+    grpc_address = "localhost:" + args.serverport
 
     # Start grpc server in a separate thread
-    grpc_thread = Thread(target=serve_grpc, args=(grpc_address,))
+    grpc_thread = Thread(target=serve_grpc, args=(grpc_address,args.dhtport,args.bootstrapip,))
     grpc_thread.start()
 
     # Wait for both threads to finish
