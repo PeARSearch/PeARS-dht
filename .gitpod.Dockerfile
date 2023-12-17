@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full:latest
+FROM gitpod/workspace-python-3.10
 
 RUN sudo apt -y update
 
@@ -11,9 +11,9 @@ RUN sudo apt-get install -y \
     && sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
 
 RUN sudo apt-get update && sudo apt-get install -y \
-        build-essential pkg-config cmake git wget \
+        build-essential pkg-config cmake git wget tmux \
         libtool autotools-dev autoconf graphviz doxygen\
-        cython3 python3-dev python3-setuptools python3-build python3-virtualenv \
+        cython3 \
         libncurses5-dev libreadline-dev nettle-dev libcppunit-dev \
         libgnutls28-dev libuv1-dev libjsoncpp-dev libargon2-dev \
         libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev  openssh-client \
@@ -48,7 +48,7 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr \
 				-DOPENDHT_PROXY_CLIENT=On \
             -DOPENDHT_SYSTEMD=Off
 
-RUN pip3 install --upgrade cython protobuf-compiler
+RUN python3.10 -m pip install cython
 RUN make -j8
 RUN sudo make install
 
