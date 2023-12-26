@@ -9,11 +9,10 @@ image:
 tasks:
   - name: prep
     init: |
+      go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+      go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
       pre-commit install --install-hooks
     command: |
-      pyenv global global
-      python3 -m grpc_tools.protoc -I./ --python_out=./ --grpc_python_out=./  pears_dht/proto/messages/*.proto
-      pip install -r requirements.txt
       echo "Happy Hacking 🍐"
 vscode:
   extensions:

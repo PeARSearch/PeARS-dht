@@ -1,4 +1,4 @@
-FROM gitpod/workspace-python-3.10
+FROM gitpod/workspace-full:latest
 
 RUN sudo apt -y update
 
@@ -11,13 +11,16 @@ RUN sudo apt-get install -y \
     && sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
 
 RUN sudo apt-get update && sudo apt-get install -y \
-        build-essential pkg-config cmake git wget tmux \
-        libtool autotools-dev autoconf graphviz doxygen\
-        cython3 \
+        build-essential pkg-config cmake git wget \
+        libtool autotools-dev autoconf  doxygen\
+        cython3 python3-dev python3-setuptools python3-build python3-virtualenv \
         libncurses5-dev libreadline-dev nettle-dev libcppunit-dev \
         libgnutls28-dev libuv1-dev libjsoncpp-dev libargon2-dev \
-        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev  openssh-client \
+        libssl-dev libfmt-dev libhttp-parser-dev libasio-dev libmsgpack-dev \
     && sudo apt-get clean && sudo  rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# Install python binding dependencies
+RUN sudo apt-get install -y  cython3 python3-dev python3-setuptools
 
 # Build & install restinio (for proxy server/client):
 RUN mkdir restinio && cd restinio \
@@ -30,15 +33,11 @@ RUN mkdir restinio && cd restinio \
     && make -j8 && sudo make install \
     && cd ../../../ && sudo rm -rf restinio
 
-RUN git clone https://github.com/nandajavarma/opendht.git /workspace/opendht
-
-RUN sudo chown -hR gitpod:gitpod /workspace
+RUN git clone https://github.com/nandajavarma/opendht.git /workspace
 
 WORKDIR /workspace/opendht
-
-RUN ls -a
 # build and install
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr \
+RUN sudo cmake -DCMAKE_INSTALL_PREFIX=/usr \
 				-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
 				-DOPENDHT_C=On \
 				-DOPENDHT_PEER_DISCOVERY=On \
@@ -46,12 +45,8 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr \
 				-DOPENDHT_TOOLS=On \
 				-DOPENDHT_PROXY_SERVER=On \
 				-DOPENDHT_PROXY_CLIENT=On \
-            -DOPENDHT_SYSTEMD=Off
-
-RUN python3.10 -m pip install cython
+				-DOPENDHT_SYSTEMD=Off
 RUN make -j8
 RUN sudo make install
-
-ENV PYTHONPATH=/workspace/PeARS-dht
 
 WORKDIR /workspace/PeARS-dht
