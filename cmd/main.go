@@ -32,7 +32,9 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		log.Printf("To connect to the new node, use the address %s", fmt.Sprint(n.Addr))
+		pht := dht.NewPht(cmd.Context(), n)
+
+		log.Printf("To connect to the new node, use the address %s", fmt.Sprint(pht.Node.Addr))
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)

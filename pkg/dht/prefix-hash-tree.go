@@ -2,6 +2,7 @@ package dht
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"strings"
@@ -316,4 +317,10 @@ func intToBytes(n int) ([]byte, error) {
         return nil, err
     }
     return buf.Bytes(), nil
+}
+
+func NewPht(ctx context.Context, node *Node) *Pht {
+	return &Pht{
+		Node: node,
+	}
 }
