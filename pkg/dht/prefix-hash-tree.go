@@ -1,6 +1,8 @@
 package dht
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"strings"
 	"time"
@@ -16,16 +18,27 @@ type Prefix struct {
 	Content []byte
 }
 
+const MaxPaddingSize = 256 // This is an arbitrary value, adjust according to your needs
+
 type IndexEntry struct {
-	// Define the properties of IndexEntry as needed
 }
 
-// Define other necessary structs and types...
+type KeySpec map[string]int
 
-// Pht represents a DHT.
 type Pht struct {
-	// Include necessary fields...
+	KeySpec KeySpec
+
+	Node *Node
 }
+
+// Key represents a key in the DHT.
+type Key struct {
+	Part1 string
+    Part2 int
+}
+
+// LookupCallback is a callback function type for the lookup result.
+type LookupCallback func(vals []IndexEntry, p Prefix)
 
 // LookupCallbackWrapper is a function type for the lookup callback.
 type LookupCallbackWrapper func(vals []IndexEntry, p Prefix)
@@ -220,4 +233,87 @@ func (pht *Pht) lookupStep(p Prefix, lo, hi *int, vals *[]IndexEntry, cb LookupC
     }()
 
     // Additional logic for handling lookup steps...
+}
+
+func (pht *Pht) Lookup(k Key, cb LookupCallback, doneCb DoneCallbackSimple, exactMatch bool) {
+    prefix := pht.Linearize(k) // Assuming Linearize is a method to convert a Key to a Prefix
+    values := make([]IndexEntry, 0)
+
+    lo := new(int)
+    hi := new(int)
+    *lo = 0
+    *hi = prefix.Size // Assuming Prefix has a Size field
+
+    var maxCommonPrefixLen *int
+    if !exactMatch {
+        maxCommonPrefixLen = new(int)
+    }
+
+    pht.lookupStep(prefix, lo, hi, &values, func(entries []IndexEntry, p Prefix) {
+        // Process the entries as per your logic
+        cb(entries, p)
+    }, doneCb, maxCommonPrefixLen, -1, true) // Assuming true for allValues for simplicity
+}
+
+func (pht *Pht) Linearize(k Key) Prefix {
+    // Logic to convert a multi-dimensional key into a unidimensional prefix
+    // This is an oversimplified example. You'll need to adjust it to your actual key structure and requirements.
+
+    var allPrefixes []Prefix
+    for partName, length := range pht.KeySpec {
+        // Assuming 'k' provides a way to get its parts as []byte
+        part := k.GetPartAsBytes(partName) // Simplified; replace with actual method to get key part
+        paddedPart := padToLength(part, length)
+        allPrefixes = append(allPrefixes, Prefix{Content: paddedPart, Size: len(paddedPart)})
+    }
+
+    return pht.ZCurve(allPrefixes)
+}
+
+func (k Key) GetPartAsBytes(partName string) []byte {
+    switch partName {
+    case "Part1":
+        return []byte(k.Part1)
+    case "Part2":
+		res, err := intToBytes(k.Part2)
+		if err != nil {
+			// TODO(nvn): handle the error better
+			fmt.Print(err)
+		}
+        return res
+    // handle other parts...
+    default:
+        return nil // or handle unknown parts as appropriate
+    }
+}
+
+func padToLength(data []byte, length int) []byte {
+    if len(data) >= length {
+        return data[:length]
+    }
+    padding := make([]byte, length-len(data))
+    return append(data, padding...)
+}
+
+func (pht *Pht) ZCurve(prefixes []Prefix) Prefix {
+    // Interleave bits of prefixes. This is a conceptual example.
+    // The actual implementation will depend on how you need to interleave the bits.
+
+    var result []byte
+    for _, prefix := range prefixes {
+        // This is a placeholder logic. You need to implement the actual interleaving algorithm.
+        result = append(result, prefix.Content...) // Simplified; replace with actual interleaving logic
+    }
+    return Prefix{Content: result, Size: len(result)}
+}
+
+// intToBytes converts an integer to a byte slice.
+// This example uses big-endian format, but you can use binary.LittleEndian if needed.
+func intToBytes(n int) ([]byte, error) {
+    buf := new(bytes.Buffer)
+    err := binary.Write(buf, binary.BigEndian, int64(n))
+    if err != nil {
+        return nil, err
+    }
+    return buf.Bytes(), nil
 }
