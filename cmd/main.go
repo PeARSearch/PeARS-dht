@@ -27,11 +27,13 @@ var rootCmd = &cobra.Command{
 		config.Timeout = 10 * time.Millisecond
 		config.MaxIdle = 100 * time.Millisecond
 
+		// this call starts a GRPC server that currently can be used to communicate with other nodes
 		n, err := dht.NewNode(config, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		// the following code doesn't do anything yet
 		pht := dht.NewPht(cmd.Context(), n)
 
 		log.Printf("To connect to the new node, use the address %s", fmt.Sprint(pht.Node.Addr))
