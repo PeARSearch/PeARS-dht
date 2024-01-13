@@ -23,8 +23,10 @@ We use the `make` targets defined in `Makefile` to create a multi-node setup loc
 - To start the first node, run the following command:
 
   ```
-  make run
+  make build
+  ./bin/pears-dht # run ./bin/peards-dht --help if you want to change port, node ID etc.
   ```
-
   The above, will start the DHT in port 8080
+
+- If you are developing and want to testing it quick, run the command `make run` (or `go run main.go`)
 
