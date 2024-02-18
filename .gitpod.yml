@@ -9,10 +9,13 @@ image:
 tasks:
   - name: prep
     init: |
+      cd /workspace/PeARS-orchard
+      docker build -t orchard:latest .
       go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
       go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-      pre-commit install --install-hooks
     command: |
+      docker run -d -p 8080:8080 -it orchard:latest 
+
       echo "Happy Hacking 🍐"
 vscode:
   extensions:
