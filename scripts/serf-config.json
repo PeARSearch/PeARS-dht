@@ -1,0 +1,4 @@
+{
+  "log_level": "info",
+  "query_response_size_limit": 2048
+}
