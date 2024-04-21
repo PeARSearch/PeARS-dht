@@ -40,7 +40,7 @@ func (a *mapStore) hashKey(key string) ([]byte, error) {
 func (a *mapStore) Get(key string) ([]byte, error) {
 	val, ok := a.data[key]
 	if !ok {
-		return nil, ERR_KEY_NOT_FOUND
+		return nil, ErrKeyNotFound
 	}
 	return []byte(val), nil
 }

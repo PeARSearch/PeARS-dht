@@ -211,7 +211,7 @@ func (n *Node) join(joinNode *protov1.Node) error {
 		}
 
 		if isEqual(remoteNode.Id, n.Id) {
-			return ERR_NODE_EXISTS
+			return ErrNodeExists
 		}
 		foo = joinNode
 	} else {
@@ -567,7 +567,7 @@ func (n *Node) FindSuccessor(ctx context.Context, id *protov1.ID) (*protov1.Node
 	}
 
 	if succ == nil {
-		return nil, ERR_NO_SUCCESSOR
+		return nil, ErrNoSuccessor
 	}
 
 	return succ, nil

@@ -11,14 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var bootstrapAddr string
-var port string
-var id string
+var (
+	bootstrapAddr string
+	port          string
+	id            string
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run the PeARS DHT in a standalone or p2p mode",
-	Long: `Run a full fledged distributed network`,
+	Long:  `Run a full fledged distributed network`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		config := dht.DefaultConfig()
@@ -32,6 +34,23 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		err = dht.PopulateTestData(cmd.Context(), n)
+		if err != nil {
+			log.Fatalf("Failed to populate test data: %v", err)
+		}
+
+		queryHash, err := dht.GenerateInfoHash(cmd.Context(), dht.DefaultOrchardSearchCallerURL, map[string]string{"query": "cow"})
+		if err != nil {
+			log.Fatalf("failed to retrive inforhash of the query: %v", err)
+		}
+
+		response, err := n.Get(queryHash)
+		if err != nil {
+			log.Fatalf("failed to lookup inforhash of the query from the dht: %v", err)
+		}
+
+		fmt.Printf("results of the lookup: %s\n", string(response))
 
 		// the following code doesn't do anything yet
 		pht := dht.NewPht(cmd.Context(), n)
